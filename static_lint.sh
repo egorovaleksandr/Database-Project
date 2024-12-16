@@ -9,5 +9,5 @@ fi
 echo "Анализ бэкенда:"
 pylint /backend
 
-#echo "Анализ фронтенда:"
-#pylint /frontend
+echo "Анализ фронтенда:"
+pylint /frontend
