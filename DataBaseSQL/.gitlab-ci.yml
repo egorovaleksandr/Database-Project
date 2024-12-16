@@ -1,0 +1,65 @@
+image: python:3.9-slim
+
+stages:
+  - tasks
+
+services:
+  - name: postgres:15-alpine
+    alias: postgres
+
+
+
+variables:
+  POSTGRES_DB: postgres
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: password
+  POSTGRES_HOST_AUTH_METHOD: trust
+
+  DBNAME: postgres
+  DBHOST: postgres
+  DBPORT: 5432
+  DBUSER: postgres
+  DBPASSWORD: password
+
+  PROJECT_DIR: ${CI_PROJECT_DIR}/
+  SCRIPTS_DIR: ${PROJECT_DIR}/scripts
+  UTILS_DIR: ${PROJECT_DIR}/utils
+  PYPSQL: ${UTILS_DIR}/pypsql.py
+
+  NO_COLOUR: '\033[0m'
+  LIGHT_RED: '\033[1;31m'
+
+
+.setup:
+  before_script:
+    - pip install -r ${PROJECT_DIR}/requirements.txt > /dev/null 2> /dev/null
+
+
+tasks from 3rd to 11th:
+  stage: tasks
+  extends:
+    - .setup
+  script:
+    - echo -e "${LIGHT_RED}>>> Task ¹3 <<<${NO_COLOUR}"
+    - python3 ${PYPSQL} --file="${SCRIPTS_DIR}/dealership_ddl.sql" --cat
+
+    - echo -e "${LIGHT_RED}>>> Task ¹4-5 <<<${NO_COLOUR}"
+    - python3 ${PYPSQL} --file="${SCRIPTS_DIR}/dealership_inserts.sql"
+    - echo "Table 'dealership.customer' contains rows:"
+    - python3 ${PYPSQL} --sql="SELECT * FROM dealership.customer" --verbose
+    - echo "Table 'dealership.seller' contains rows:"
+    - python3 ${PYPSQL} --sql="SELECT * FROM dealership.seller" --verbose
+    - echo "Table 'dealership.payment' contains rows:"
+    - python3 ${PYPSQL} --sql="SELECT * FROM dealership.payment" --verbose
+    - echo "Table 'dealership.maker' contains rows:"
+    - python3 ${PYPSQL} --sql="SELECT * FROM dealership.maker" --verbose
+    - echo "Table 'dealership.model' contains rows:"
+    - python3 ${PYPSQL} --sql="SELECT * FROM dealership.model" --verbose
+    - echo "Table 'dealership.price' contains rows:"
+    - python3 ${PYPSQL} --sql="SELECT * FROM dealership.price" --verbose
+    - echo "Table 'dealership.automobile' contains rows:"
+    - python3 ${PYPSQL} --sql="SELECT * FROM dealership.automobile" --verbose
+    - echo "Table 'dealership.service_info' contains rows:"
+    - python3 ${PYPSQL} --sql="SELECT * FROM dealership.service_info" --verbose
+    - echo "Table 'dealership.service' contains rows:"
+    - python3 ${PYPSQL} --sql="SELECT * FROM dealership.service" --verbose
