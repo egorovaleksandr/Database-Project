@@ -79,3 +79,12 @@ def addDataService(customer_id, service_id, automobile_id):
     cursor.execute("INSERT INTO dealership.service (customer_id, service_id, automobile_id) VALUES (?, ?, ?)", (customer_id, service_id, automobile_id))
     connection.commit()
     connection.close()
+
+#methods for DML (selects)
+def viewData(table_name):
+    connection = sqlite3.connect('../databases/dealership.db')
+    cursor = connection.cursor()
+    cursor.execute(f"SELECT * FROM dealership." + table_name)
+    rows = cursor.fetchall()
+    connection.close()
+    return rows
