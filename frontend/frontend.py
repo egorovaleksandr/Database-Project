@@ -58,11 +58,59 @@ class Frontend:
         self.window.config(bg=config.background)
         self.window.resizable(0, 0)
 
-    # TODO: Добавить переменных для других таблиц
     def __setupVariables(self):
+        #Seller
         self.SellerID = IntVar()
         self.SellerFullName = StringVar()
-        self.SellerFullNumber = StringVar()
+        self.SellerPhoneNumber = StringVar()
+
+        #Customer
+        self.CustomerID = IntVar()
+        self.CustomerFullName = StringVar()
+        self.CustomerPhoneNumber = StringVar()
+
+        #Maker
+        self.MakerID = IntVar()
+        self.MakerCountry = StringVar()
+        self.MakerCompany = StringVar()
+
+        #Model
+        self.ModelId = IntVar()
+        self.ModelName = StringVar()
+        self.ModelColour = StringVar()
+        self.ModelNumberOfSeats = IntVar()
+        self.ModelEngine = StringVar()
+
+        #Price
+        self.PriceModelId = IntVar()
+        self.PriceValue = DoubleVar()
+        self.PriceDateFrom = StringVar()
+        self.PriceDateTo = StringVar()
+
+        #Automobile
+        self.AutomobileID = IntVar()
+        self.AutomobileBrand = StringVar()
+        self.AutomobileMakerID = IntVar()
+        self.AutomobileModelID = IntVar()
+
+        #Payment
+        self.PaymentID = IntVar()
+        self.PaymentMethod = StringVar()
+        self.PaymentDate = StringVar()
+        self.PaymentAccountNumber = StringVar()
+        self.PaymentReceiptSize = DoubleVar()
+
+        #Service_info
+        self.SIServiceID = IntVar()
+        self.SISellerID = IntVar()
+        self.SIAutomobileID = IntVar()
+        self.SIServiceDate = StringVar()
+        self.SIPayID = IntVar()
+
+        #Service
+        self.ServiceCustomerID = IntVar()
+        self.serviceID = IntVar()
+        self.ServiceAutomobileID = IntVar()
 
     def __setupFrame(self):
         mainFrame = Frame(self.window, bg=config.background)
@@ -120,7 +168,7 @@ class Frontend:
 
         self.labelSellerPhoneNumber = Label(DataFrameLEFT, font=(config.font, 20, 'bold'), text="Phone Number", padx=2, pady=2,bg=config.text_background)
         self.labelSellerPhoneNumber.grid(row=2, column=0, sticky=W)
-        self.textSellerPhoneNumber = Entry(DataFrameLEFT, font=(config.font, 20, 'bold'), textvariable=self.SellerFullNumber, width=39)
+        self.textSellerPhoneNumber = Entry(DataFrameLEFT, font=(config.font, 20, 'bold'), textvariable=self.SellerPhoneNumber, width=39)
         self.textSellerPhoneNumber.grid(row=2, column=1)
 
         scrollbar= Scrollbar(DataFrameRIGHT)
