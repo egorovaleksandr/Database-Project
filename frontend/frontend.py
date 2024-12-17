@@ -4,7 +4,7 @@ from tkinter.messagebox import showinfo, askyesno
 from tkinter.ttk import Notebook
 import backendDB
 import config
-
+import re
 
 def numberFieldValid(value):
     if value == "":
@@ -14,6 +14,11 @@ def numberFieldValid(value):
         return True
     except ValueError:
         return False
+    
+def phoneNumberValid(value):
+    if value == "":
+        return True
+    return re.match("^\+\d{0,11}$", value) is not None
 
 class Frontend:
     def __init__(self, window):
@@ -202,6 +207,7 @@ class Frontend:
         DataFrameRIGHT.pack(side=RIGHT)
 
         vcmd = (self.window.register(numberFieldValid))
+        vcmd_phone = (self.window.register(phoneNumberValid))
 
         self.labelSellerID = Label(DataFrameLEFT, font=(config.font, 20, 'bold'), text="Seller's ID:",padx=2,pady=2,bg=config.text_background)
         self.labelSellerID.grid(row=0,column=0,sticky=W)
@@ -216,7 +222,7 @@ class Frontend:
 
         self.labelSellerPhoneNumber = Label(DataFrameLEFT, font=(config.font, 20, 'bold'), text="Phone Number", padx=2, pady=2,bg=config.text_background)
         self.labelSellerPhoneNumber.grid(row=2, column=0, sticky=W)
-        self.textSellerPhoneNumber = Entry(DataFrameLEFT, font=(config.font, 20, 'bold'), textvariable=self.SellerPhoneNumber, width=39)
+        self.textSellerPhoneNumber = Entry(DataFrameLEFT, font=(config.font, 20, 'bold'), textvariable=self.SellerPhoneNumber, width=39, validate="all", validatecommand=(vcmd_phone, "%P"))
         self.textSellerPhoneNumber.grid(row=2, column=1)
 
         scrollbar= Scrollbar(DataFrameRIGHT)
@@ -263,6 +269,7 @@ class Frontend:
         DataFrameRIGHT.pack(side=RIGHT)
 
         vcmd = (self.window.register(numberFieldValid))
+        vcmd_phone = (self.window.register(phoneNumberValid))
 
         self.labelCustomerID = Label(DataFrameLEFT, font=(config.font, 20, 'bold'), text="Customers's ID:",padx=2,pady=2,bg=config.text_background)
         self.labelCustomerID.grid(row=0,column=0,sticky=W)
@@ -277,7 +284,7 @@ class Frontend:
 
         self.labelCustomerPhoneNumber = Label(DataFrameLEFT, font=(config.font, 20, 'bold'), text="Phone Number", padx=2, pady=2,bg=config.text_background)
         self.labelCustomerPhoneNumber.grid(row=2, column=0, sticky=W)
-        self.textCustomerPhoneNumber = Entry(DataFrameLEFT, font=(config.font, 20, 'bold'), textvariable=self.CustomerPhoneNumber, width=39)
+        self.textCustomerPhoneNumber = Entry(DataFrameLEFT, font=(config.font, 20, 'bold'), textvariable=self.CustomerPhoneNumber, width=39, validate="all", validatecommand=(vcmd_phone, "%P"))
         self.textCustomerPhoneNumber.grid(row=2, column=1)
 
         scrollbar= Scrollbar(DataFrameRIGHT)
