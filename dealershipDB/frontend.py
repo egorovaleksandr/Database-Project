@@ -47,10 +47,13 @@ class Frontend:
             self.window.destroy()
     
     def addDataSeller(self):
-        backendDB.addDataSeller(self.SellerID.get(), self.SellerFullName.get(), self.SellerPhoneNumber.get())
+        self.databaseCreated = True
+        backendDB.addDataSeller(self.SellerFullName.get(), self.SellerPhoneNumber.get())
         self.SellerList.insert(END, (self.SellerID.get(), self.SellerFullName.get(), self.SellerPhoneNumber.get()))
+
     def addDataCustomer(self):
-        backendDB.addDataCustomer(self.CustomerID.get(), self.CustomerFullName.get(), self.CustomerPhoneNumber.get())
+        self.databaseCreated = True
+        backendDB.addDataCustomer(self.CustomerFullName.get(), self.CustomerPhoneNumber.get())
         self.CustomerList.insert(END, (self.CustomerID.get(), self.CustomerFullName.get(), self.CustomerPhoneNumber.get()))
 
     def openDatabase(self, tableName):
@@ -70,7 +73,7 @@ class Frontend:
         else: 
             creating = True
         if creating:
-            # backendDB.dropDealershipDB()
+            #backendDB.dropDealershipDB()
             backendDB.createDealershipDB()
             if self.databaseCreated:
                 showinfo("Action", "Database has been created.")
