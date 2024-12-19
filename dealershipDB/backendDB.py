@@ -1,8 +1,12 @@
 import sqlite3
+import os
 
-datapath = 'databases\dealership.db'
-ddl_create = 'dealershipDB\ddl_create.sql'
-ddl_drop = 'dealershipDB\ddl_drop.sql'
+current_dir = os.path.dirname(__file__)
+base_dir = os.path.abspath(os.path.join(current_dir, '..'))
+datapath = os.path.join(base_dir, 'databases', 'dealership.db')
+ddl_create = os.path.join(base_dir, 'sqlite_scripts', 'ddl_create.sql')
+ddl_drop = os.path.join(base_dir, 'sqlite_scripts', 'ddl_drop.sql')
+dml_inserts = os.path.join(base_dir, 'sqlite_scripts', 'dml_inserts.sql')
 
 def checkTableNotExists(table_name):
     with sqlite3.connect(datapath) as connection:
@@ -25,6 +29,7 @@ def createDealershipDB():
             connection.commit()
     except sqlite3.Error as e:
         print(f"Ошибка при создании базы данных: {e}")
+    #testFilling()
 
 def dropDealershipDB():
     try:
@@ -38,6 +43,18 @@ def dropDealershipDB():
         print(f"Ошибка при удалении базы данных: {e}")
 
 #methods for DML (inserts)
+def testFilling():
+    try:
+        with sqlite3.connect(datapath) as connection:
+            cursor = connection.cursor()
+            with open(dml_inserts, 'r', encoding='utf-8') as f:
+                sql_script = f.read()
+            cursor.executescript(sql_script)
+            connection.commit()
+    except sqlite3.Error as e:
+        print(f"Ошибка при тестовом заполнении базы данных: {e}")
+
+
 def addDataCustomer(full_name, phone_number):
     if checkTableNotExists("customer"):
         createDealershipDB()
