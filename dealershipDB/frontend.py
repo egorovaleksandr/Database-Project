@@ -2,7 +2,7 @@
 from tkinter import *
 from tkinter.messagebox import showinfo, askyesno
 from tkinter.ttk import Notebook
-import backendDB
+import backend
 import config
 import re
 from functools import partial
@@ -100,10 +100,9 @@ class Frontend:
             self.open_table(listbox, table_name)
 
     def open_table(self, listbox, table_name):
-        data = backendDB.viewData(table_name)
+        data = backend.view_data(table_name)
         if not data:
-            self.createNewDatabase()
-            self.database_created = True
+            #backend.testFilling()
             return
         listbox.delete(0, END)
         for row in data:
@@ -117,8 +116,8 @@ class Frontend:
         else:
             creating = True
         if creating:
-            # backendDB.dropDealershipDB()
-            backendDB.createDealershipDB()
+            # backend.dropDealershipDB()
+            backend.create_dealership_db()
             if self.database_created:
                 showinfo("Action", "Database has been created.")
             self.database_created = True
@@ -129,12 +128,12 @@ class Frontend:
         deleting = askyesno(
             config.title, "Are you sure you want to delete database?")
         if deleting > 0:
-            backendDB.dropDealershipDB()
+            backend.drop_dealership_db()
             self.database_created = False
             showinfo("Action", "Database has been deleated.")
 
     def clear_database(self):
-        backendDB.clearDatabase()
+        backend.clear_database()
 
     def exit(self):
         exiting = askyesno(config.title, "Confirm if you want to exit")
@@ -143,21 +142,21 @@ class Frontend:
 
     def add_seller_data(self):
         self.database_created = True
-        backendDB.addDataSeller(self.SellerFullName.get(),
+        backend.add_data_seller(self.SellerFullName.get(),
                                 self.SellerPhoneNumber.get())
         self.seller_listbox.insert(
             END, (self.SellerFullName.get(), self.SellerPhoneNumber.get()))
 
     def add_customer_data(self):
         self.database_created = True
-        backendDB.addDataCustomer(
+        backend.add_data_customer(
             self.CustomerFullName.get(), self.CustomerPhoneNumber.get())
         self.customer_listbox.insert(
             END, (self.CustomerFullName.get(), self.CustomerPhoneNumber.get()))
 
     def add_payment_data(self):
         self.database_created = True
-        backendDB.addDataPayment(
+        backend.add_data_payment(
             self.PaymentMethod.get(),
             self.PaymentDate.get(),
             self.PaymentAccountNumber.get(),
@@ -171,7 +170,7 @@ class Frontend:
 
     def add_automobile_data(self):
         self.database_created = True
-        backendDB.addDataModel(
+        backend.add_data_model(
             self.ModelName.get(),
             self.ModelColour.get(),
             self.ModelNumberOfSeats.get(),
@@ -186,7 +185,7 @@ class Frontend:
     def update_seller(self):
         self.seller_listbox.delete(0, END)
         if self.database_created:
-            data = backendDB.viewData("seller")
+            data = backend.view_data("seller")
             self.seller_listbox.delete(0, END)
             for row in data:
                 self.seller_listbox.insert(END, row)
@@ -194,7 +193,7 @@ class Frontend:
     def update_customer(self):
         self.customer_listbox.delete(0, END)
         if self.database_created:
-            data = backendDB.viewData("customer")
+            data = backend.view_data("customer")
             self.customer_listbox.delete(0, END)
             for row in data:
                 self.customer_listbox.insert(END, row)
@@ -202,7 +201,7 @@ class Frontend:
     def update_payment(self):
         self.payment_listbox.delete(0, END)
         if self.database_created:
-            data = backendDB.viewData("payment")
+            data = backend.view_data("payment")
             self.payment_listbox.delete(0, END)
             for row in data:
                 self.payment_listbox.insert(END, row)
@@ -210,7 +209,7 @@ class Frontend:
     def update_automobile(self):
         self.automobile_listbox.delete(0, END)
         if self.database_created:
-            data = backendDB.viewData("model")
+            data = backend.view_data("model")
             self.automobile_listbox.delete(0, END)
             for row in data:
                 self.automobile_listbox.insert(END, row)
