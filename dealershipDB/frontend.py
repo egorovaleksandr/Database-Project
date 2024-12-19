@@ -1,12 +1,14 @@
-#frontend
+# frontend
 from tkinter import *
 from tkinter.messagebox import showinfo, askyesno
 from tkinter.ttk import Notebook
 import backendDB
 import config
 import re
+from functools import partial
 
-def numberFieldValid(value):
+
+def int_number_field_valid(value):
     if value == "":
         return True
     try:
@@ -14,341 +16,364 @@ def numberFieldValid(value):
         return True
     except ValueError:
         return False
-    
-def phoneNumberValid(value):
+
+
+def float_number_field_valid(value):
     if value == "":
         return True
-    return re.match("^\+\d{0,11}$", value) is not None
+    try:
+        value = float(value)
+        return True
+    except ValueError:
+        return False
+
+
+def phone_number_valid(value):
+    if value == "":
+        return True
+    return re.fullmatch("^\+\d{0,11}", value) is not None
+
+# def date_valid(value):
+#     if value == "":
+#         return True
+#     return re.fullmatch("[0-9]{4}-[0-9]{2}-[0-9]{2}", value) is not None
+
 
 class Frontend:
     def __init__(self, window):
         self.window = window
-        self.__setupWindow()
+        self.__setup_window()
 
-        self.databaseCreated = False
+        self.database_created = False
 
-        self.__setupVariables()
+        self.__setup_variables()
 
-        mainFrame = Frame(self.window, bg=config.background)
-        mainFrame.grid()
+        main_frame = Frame(self.window, bg=config.background)
+        main_frame.grid()
 
-        notebook = Notebook(mainFrame)
+        notebook = Notebook(main_frame)
         notebook.pack(expand=True, fill=BOTH)
 
-        self.__setupSellerFrame(notebook)
-        self.__setupCustomerFrame(notebook)
+        vcmd_int = (self.window.register(int_number_field_valid))
+        vcmd_float = (self.window.register(int_number_field_valid))
+        vcmd_phone = (self.window.register(phone_number_valid))
+        # vcmd_date = (self.window.register(date_valid))
 
-        self.openDatabase("seller")
+        button_texts = ["Add New", "Clear", "Update", "Exit", "Delete"]
 
+        self.seller_texts, self.seller_listbox = self.__setup_frame(
+            notebook, "Sellers",
+            ["Full Name", "Phone Number"],
+            [(self.SellerFullName, None),
+             (self.SellerPhoneNumber, vcmd_phone)], button_texts,
+            [self.add_seller_data, partial(self.clear_data, [self.SellerFullName, self.SellerPhoneNumber]), self.update_seller, self.exit, self.deleteDatabase], self.get_seller)
+
+        self.customer_texts, self.customer_listbox = self.__setup_frame(
+            notebook, "Customers",
+            ["Full Name", "Phone Number"],
+            [(self.CustomerFullName, None),
+             (self.CustomerPhoneNumber, vcmd_phone)], button_texts,
+            [self.add_customer_data, partial(self.clear_data, [self.CustomerFullName, self.CustomerPhoneNumber]), self.update_customer, self.exit, self.deleteDatabase], self.get_customer)
+
+        self.payment_texts, self.payment_listbox = self.__setup_frame(
+            notebook, "Payments",
+            ["Payment Method", "Payment Date", "Account", "Payment Size"],
+            [(self.PaymentMethod, None), (self.PaymentDate, None), (self.PaymentAccountNumber, None), (self.PaymentReceiptSize, vcmd_float)], button_texts,
+            [self.add_payment_data, partial(self.clear_data, [self.PaymentMethod, self.PaymentDate, self.PaymentAccountNumber, self.PaymentReceiptSize]),
+             self.update_payment, self.exit, self.deleteDatabase], self.get_payment)
+
+        self.automobile_texts, self.automobile_listbox = self.__setup_frame(
+            notebook, "Automobiles",
+            ["Model Name", "Color", "Number of seats", "Engine"],
+            [(self.ModelName, None), (self.ModelColour, None),
+             (self.ModelNumberOfSeats, vcmd_int), (self.ModelEngine, None)], button_texts,
+            [self.add_automobile_data, partial(self.clear_data, [self.ModelName, self.ModelColour, self.ModelNumberOfSeats, self.ModelEngine]),
+             self.update_automobile, self.exit, self.deleteDatabase], self.get_automobile)
+
+        tables = [("seller", self.seller_listbox),
+                  ("customer", self.customer_listbox),
+                  ("payment", self.payment_listbox),
+                  ("model", self.automobile_listbox)]
+
+        for i in range(len(tables)):
+            table_name, listbox = tables[i]
+            self.open_table(listbox, table_name)
+
+    def open_table(self, listbox, table_name):
+        data = backendDB.viewData(table_name)
+        if not data:
+            self.createNewDatabase()
+            self.database_created = True
+            return
+        listbox.delete(0, END)
+        for row in data:
+            listbox.insert(END, row)
+        self.database_created = True
+
+    def createNewDatabase(self):
+        if self.database_created:
+            creating = askyesno(
+                config.title, "Are you sure you want to recreate database?\n The old one will be deleted!")
+        else:
+            creating = True
+        if creating:
+            # backendDB.dropDealershipDB()
+            backendDB.createDealershipDB()
+            if self.database_created:
+                showinfo("Action", "Database has been created.")
+            self.database_created = True
+        else:
+            showinfo("Action", "Action canceled")
+
+    def deleteDatabase(self):
+        deleting = askyesno(
+            config.title, "Are you sure you want to delete database?")
+        if deleting > 0:
+            backendDB.dropDealershipDB()
+            self.database_created = False
+            showinfo("Action", "Database has been deleated.")
+
+    def clear_database(self):
+        backendDB.clearDatabase()
 
     def exit(self):
         exiting = askyesno(config.title, "Confirm if you want to exit")
         if exiting:
             self.window.destroy()
-    
-    def addDataSeller(self):
-        self.databaseCreated = True
-        backendDB.addDataSeller(self.SellerFullName.get(), self.SellerPhoneNumber.get())
-        self.SellerList.insert(END, (self.SellerID.get(), self.SellerFullName.get(), self.SellerPhoneNumber.get()))
 
-    def addDataCustomer(self):
-        self.databaseCreated = True
-        backendDB.addDataCustomer(self.CustomerFullName.get(), self.CustomerPhoneNumber.get())
-        self.CustomerList.insert(END, (self.CustomerID.get(), self.CustomerFullName.get(), self.CustomerPhoneNumber.get()))
+    def add_seller_data(self):
+        self.database_created = True
+        backendDB.addDataSeller(self.SellerFullName.get(),
+                                self.SellerPhoneNumber.get())
+        self.seller_listbox.insert(
+            END, (self.SellerFullName.get(), self.SellerPhoneNumber.get()))
 
-    def openDatabase(self, tableName):
-        data = backendDB.viewData(tableName)
-        if not data:
-            self.createNewDatabase()
-            self.databaseCreated = True
-            return
-        self.SellerList.delete(0, END)
-        for row in data:
-            self.SellerList.insert(END, row)
-        self.databaseCreated = True
+    def add_customer_data(self):
+        self.database_created = True
+        backendDB.addDataCustomer(
+            self.CustomerFullName.get(), self.CustomerPhoneNumber.get())
+        self.customer_listbox.insert(
+            END, (self.CustomerFullName.get(), self.CustomerPhoneNumber.get()))
 
-    def createNewDatabase(self):
-        if self.databaseCreated:
-            creating = askyesno(config.title, "Are you sure you want to recreate database?\n The old one will be deleted!")
-        else: 
-            creating = True
-        if creating:
-            #backendDB.dropDealershipDB()
-            backendDB.createDealershipDB()
-            if self.databaseCreated:
-                showinfo("Action", "Database has been created.")
-            self.databaseCreated = True
-        else:
-            showinfo("Action", "Action canceled")
+    def add_payment_data(self):
+        self.database_created = True
+        backendDB.addDataPayment(
+            self.PaymentMethod.get(),
+            self.PaymentDate.get(),
+            self.PaymentAccountNumber.get(),
+            self.PaymentReceiptSize.get())
+        self.payment_listbox.insert(
+            END,
+            (self.PaymentMethod.get(),
+             self.PaymentDate.get(),
+             self.PaymentAccountNumber.get(),
+             self.PaymentReceiptSize.get()))
 
-    def deleteDatabase(self):
-        deleting = askyesno(config.title, "Are you sure you want to delete database?")
-        if deleting > 0 :
-            backendDB.dropDealershipDB()
-            self.databaseCreated = False
-            showinfo("Action", "Database has been deleated.")
+    def add_automobile_data(self):
+        self.database_created = True
+        backendDB.addDataModel(
+            self.ModelName.get(),
+            self.ModelColour.get(),
+            self.ModelNumberOfSeats.get(),
+            self.ModelEngine.get())
+        self.automobile_listbox.insert(
+            END,
+            (self.ModelName.get(),
+             self.ModelColour.get(),
+             self.ModelNumberOfSeats.get(),
+             self.ModelEngine.get()))
 
-    def updateSeller(self):
-        self.SellerList.delete(0, END)
-        if self.databaseCreated:
+    def update_seller(self):
+        self.seller_listbox.delete(0, END)
+        if self.database_created:
             data = backendDB.viewData("seller")
-            self.SellerList.delete(0, END)
+            self.seller_listbox.delete(0, END)
             for row in data:
-                self.SellerList.insert(END, row)
+                self.seller_listbox.insert(END, row)
 
-    def updateCustomer(self):
-        self.CustomerList.delete(0, END)
-        if self.databaseCreated:
+    def update_customer(self):
+        self.customer_listbox.delete(0, END)
+        if self.database_created:
             data = backendDB.viewData("customer")
-            self.CustomerList.delete(0, END)
+            self.customer_listbox.delete(0, END)
             for row in data:
-                self.CustomerList.insert(END, row)
+                self.customer_listbox.insert(END, row)
 
-    def clearData(self):
-        self.SellerID.set(0)
-        self.SellerFullName.set("")
-        self.SellerPhoneNumber.set("")
-        self.CustomerID.set(0)
-        self.CustomerFullName.set("")
-        self.CustomerPhoneNumber.set("")
-    
-    def __setupWindow(self):
+    def update_payment(self):
+        self.payment_listbox.delete(0, END)
+        if self.database_created:
+            data = backendDB.viewData("payment")
+            self.payment_listbox.delete(0, END)
+            for row in data:
+                self.payment_listbox.insert(END, row)
+
+    def update_automobile(self):
+        self.automobile_listbox.delete(0, END)
+        if self.database_created:
+            data = backendDB.viewData("model")
+            self.automobile_listbox.delete(0, END)
+            for row in data:
+                self.automobile_listbox.insert(END, row)
+
+    def get_seller(self, event):
+        search_seller = self.seller_listbox.curselection()
+        if not search_seller:
+            return
+
+        seller = self.seller_listbox.get(search_seller[0])
+
+        # Обновление в полях ввода
+        for i in range(len(self.seller_texts)):
+            self.seller_texts[i].delete(0, END)
+            self.seller_texts[i].insert(END, seller[i + 1]) # skip id
+
+    def get_customer(self, event):
+        search = self.customer_listbox.curselection()
+        if not search:
+            return
+
+        customer = self.customer_listbox.get(search[0])
+
+        # Обновление в полях ввода
+        for i in range(len(self.customer_texts)):
+            self.customer_texts[i].delete(0, END)
+            self.customer_texts[i].insert(END, customer[i + 1]) # skip id
+
+    def get_payment(self, event):
+        search = self.payment_listbox.curselection()
+        if not search:
+            return
+
+        payment = self.payment_listbox.get(search[0])
+
+        # Обновление в полях ввода
+        for i in range(len(self.payment_texts)):
+            self.payment_texts[i].delete(0, END)
+            self.payment_texts[i].insert(END, payment[i + 1]) # skip id
+
+    def get_automobile(self, event):
+        search = self.automobile_listbox.curselection()
+        if not search:
+            return
+
+        automobile = self.automobile_listbox.get(search[0])
+
+        # Обновление в полях ввода
+        for i in range(len(self.automobile_texts)):
+            self.automobile_texts[i].delete(0, END)
+            self.automobile_texts[i].insert(END, automobile[i + 1]) # skip id
+
+
+    def clear_data(self, variables_list):
+        for i in range(len(variables_list)):
+            variables_list[i].set("")
+
+    def __setup_window(self):
         self.window.title(config.title)
         self.window.geometry(config.resolution)
         self.window.config(bg=config.background)
-        self.window.resizable(0, 0)
+        # self.window.resizable(0, 0)
 
-    def __setupVariables(self):
-        #Seller
-        self.SellerID = IntVar()
+    def __setup_variables(self):
+        # Seller
         self.SellerFullName = StringVar()
         self.SellerPhoneNumber = StringVar()
 
-        #Customer
-        self.CustomerID = IntVar()
+        # Customer
         self.CustomerFullName = StringVar()
         self.CustomerPhoneNumber = StringVar()
 
-        #Maker
-        self.MakerID = IntVar()
+        # Maker
         self.MakerCountry = StringVar()
         self.MakerCompany = StringVar()
 
-        #Model
-        self.ModelId = IntVar()
+        # Model
         self.ModelName = StringVar()
         self.ModelColour = StringVar()
         self.ModelNumberOfSeats = IntVar()
         self.ModelEngine = StringVar()
 
-        #Price
+        # Price
         self.PriceModelId = IntVar()
         self.PriceValue = DoubleVar()
         self.PriceDateFrom = StringVar()
         self.PriceDateTo = StringVar()
 
-        #Automobile
-        self.AutomobileID = IntVar()
+        # Automobile
         self.AutomobileBrand = StringVar()
-        self.AutomobileMakerID = IntVar()
-        self.AutomobileModelID = IntVar()
 
-        #Payment
-        self.PaymentID = IntVar()
+        # Payment
         self.PaymentMethod = StringVar()
         self.PaymentDate = StringVar()
         self.PaymentAccountNumber = StringVar()
         self.PaymentReceiptSize = DoubleVar()
 
-        #Service_info
-        self.SIServiceID = IntVar()
-        self.SISellerID = IntVar()
-        self.SIAutomobileID = IntVar()
+        # Service_info
         self.SIServiceDate = StringVar()
-        self.SIPayID = IntVar()
 
-        #Service
-        self.ServiceCustomerID = IntVar()
-        self.serviceID = IntVar()
-        self.ServiceAutomobileID = IntVar()
+    def __setup_frame(self, notebook, notebook_label, label_texts, text_variables, button_texts, commands, list_command):
+        data_frame = Frame(notebook, borderwidth=2, padx=20,
+                           pady=20, width=1000, height=400, relief=RIDGE, bg=config.background)
+        data_frame.pack(side=BOTTOM)
 
-    def __setupSellerFrame(self, notebook):
-        # titleFrame = Frame(mainFrame, bd=2, padx=54,pady=8, bg=config.text_background, relief=RIDGE)
-        # titleFrame.pack(side=TOP)
-        # labelTitle = Label(titleFrame, font=(config.font, 48, 'bold'), text="Car Dealership Database", bg=config.text_background)
-        # labelTitle.grid()
+        button_frame = Frame(data_frame, borderwidth=2, padx=20,
+                             pady=10, width=1350, height=70, relief=RIDGE, bg=config.text_background)
+        button_frame.pack(side=BOTTOM)
 
-        DataFrames = []
-        DataFramesLEFT = []
-        DataFramesRIGHT = []
+        data_frame_left = LabelFrame(data_frame, bd=1, width=600, height=600, padx=20, relief=RIDGE,
+                                     bg=config.text_background, font=(config.font, 26, 'bold'), text="Table Info\n")
+        data_frame_left.pack(side=LEFT)
+        data_frame_right = LabelFrame(data_frame, bd=1, width=450, height=450, padx=31, pady=3, relief=RIDGE,
+                                      bg=config.text_background, font=(config.font, 20, 'bold'), text="Table Data\n")
+        data_frame_right.pack(side=RIGHT)
 
-        # tablesInfo = ...
+        labels = []
+        entries = []
 
-        # for i in range(3):
-            # newDataFrame = Frame(notebook, bd=1, width=1300, height=400, padx=20, pady=20, relief=RIDGE,bg=config.background)
-            # newDataFrameLEFT = ...
-            # newDataFrameRIGHT = ...
+        for i in range(len(label_texts)):
+            labels.append(Label(data_frame_left, font=(
+                config.font, 20, 'bold'), text=label_texts[i], padx=2, pady=2, bg=config.text_background))
+            labels[i].grid(row=i, column=0, sticky=W)
 
-            #DataFrames.append(newDataFrame)
-            #DataFramesLEFT.append(newDataFrameLEFT)
-            #DataFramesRIGHT.append(newDataFrameRIGHT)
+            variable, validator = text_variables[i]
 
+            if validator is not None:
+                entries.append(Entry(data_frame_left, font=(
+                    config.font, 20, 'bold'), textvariable=variable, width=39, validate="all", validatecommand=(validator, "%P")))
+            else:
+                entries.append(Entry(data_frame_left, font=(
+                    config.font, 20, 'bold'), textvariable=variable, width=39))
+            entries[i].grid(row=i, column=1)
 
-        # Seller
-      
+        scrollbar = Scrollbar(data_frame_right)
+        scrollbar.grid(row=0, column=1, sticky='ns')
 
-        # TODO: Выше сделать цикл по аналогии с тем, что ниже
-        DataFrame = Frame(notebook, bd=1, width=1000, height=400, padx=20, pady=20, relief=RIDGE,bg=config.background)
-        DataFrame.pack(side=BOTTOM)
+        list_box = Listbox(data_frame_right, width=45, height=16, font=(
+            config.font, 12, 'bold'), yscrollcommand=scrollbar.set)
+        list_box.bind('<<ListboxSelect>>', list_command)
+        list_box.grid(row=0, column=0, padx=8)
 
-        ButtonFrame = Frame(DataFrame, bd=2, width=1350, height=70, padx=19, pady=10, bg=config.text_background, relief=RIDGE)
-        ButtonFrame.pack(side=BOTTOM)
+        scrollbar.config(command=list_box.yview)
 
-        DataFrameLEFT = LabelFrame(DataFrame, bd=1, width=1000, height=600, padx=20, relief=RIDGE, bg=config.text_background, font=(config.font, 26, 'bold'), text="Table Info\n")
-        DataFrameLEFT.pack(side=LEFT)
-        DataFrameRIGHT = LabelFrame(DataFrame, bd=1, width=450, height=300, padx=31, pady=3, relief=RIDGE,bg=config.text_background,font=(config.font, 20, 'bold'),text="Table Data\n")
-        DataFrameRIGHT.pack(side=RIGHT)
+        buttons = []
 
-        vcmd = (self.window.register(numberFieldValid))
-        vcmd_phone = (self.window.register(phoneNumberValid))
+        for i in range(len(button_texts)):
+            buttons.append(Button(button_frame, text=button_texts[i], font=(
+                config.font, 20, 'bold'), height=1, width=10, bd=4, command=commands[i]))
+            buttons[i].grid(row=0, column=i)
 
-        self.labelSellerID = Label(DataFrameLEFT, font=(config.font, 20, 'bold'), text="Seller's ID:",padx=2,pady=2,bg=config.text_background)
-        self.labelSellerID.grid(row=0,column=0,sticky=W)
+        notebook.add(data_frame, text=notebook_label)
 
-        self.textSellerID = Entry(DataFrameLEFT, font=(config.font, 20, 'bold'), textvariable=self.SellerID, width=39, validate="all", validatecommand=(vcmd, "%P"))
-        self.textSellerID.grid(row=0, column=1)
+        return entries, list_box
 
-        self.labelSellerFullName = Label(DataFrameLEFT, font=(config.font, 20, 'bold'), text="Full Name:", padx=2, pady=2,bg=config.text_background)
-        self.labelSellerFullName.grid(row=1, column=0, sticky=W)
-        self.textSellerFullName = Entry(DataFrameLEFT, font=(config.font, 20, 'bold'), textvariable=self.SellerFullName, width=39)
-        self.textSellerFullName.grid(row=1, column=1)
+    # def get_from_list(self, list_box, text_variables, event):
+    #     search = list_box.curselection()
+    #     if not search:
+    #         return
 
-        self.labelSellerPhoneNumber = Label(DataFrameLEFT, font=(config.font, 20, 'bold'), text="Phone Number", padx=2, pady=2,bg=config.text_background)
-        self.labelSellerPhoneNumber.grid(row=2, column=0, sticky=W)
-        self.textSellerPhoneNumber = Entry(DataFrameLEFT, font=(config.font, 20, 'bold'), textvariable=self.SellerPhoneNumber, width=39, validate="all", validatecommand=(vcmd_phone, "%P"))
-        self.textSellerPhoneNumber.grid(row=2, column=1)
+    #     found = list_box.get(search[0])
 
-        scrollbar= Scrollbar(DataFrameRIGHT)
-        scrollbar.grid(row=0,column=1,sticky='ns')
-
-        self.SellerList = Listbox(DataFrameRIGHT, width=41, height=16, font=(config.font, 12, 'bold'),yscrollcommand=scrollbar.set)
-        self.SellerList.bind('<<ListboxSelect>>', self.__getSeller)
-        self.SellerList.grid(row=0, column=0, padx=8)
-        scrollbar.config(command=self.SellerList.yview)
-
-        buttonCreateTable = Button(ButtonFrame, text="Add New", font=(config.font, 20, 'bold'), height=1, width=10, bd=4, command=self.addDataSeller)
-        buttonCreateTable.grid(row=0, column = 0)
-
-        buttonClearData = Button(ButtonFrame, text="Clear", font=(config.font, 20, 'bold'), height=1, width=10, bd=4,command=self.clearData)
-        buttonClearData.grid(row=0, column=1)
-
-        buttonUpdateData = Button(ButtonFrame, text="Update", font=(config.font, 20, 'bold'), height=1, width=10, bd=4,command=self.updateSeller)
-        buttonUpdateData.grid(row=0, column=2)
-
-        buttonExit = Button(ButtonFrame, text="Exit", font=(config.font, 20, 'bold'), height=1, width=10, bd=4, command=self.exit)
-        buttonExit.grid(row=0, column=3)
-
-        btnDeleteData = Button(ButtonFrame, text="Delete", font=(config.font, 20, 'bold'), height=1, width=10, bd=4,command=self.deleteDatabase)
-        btnDeleteData.grid(row=0, column=9)
-
-        notebook.add(DataFrame, text="Seller")
-
-    def __setupCustomerFrame(self, notebook):
-        DataFrames = []
-        DataFramesLEFT = []
-        DataFramesRIGHT = []
-    
-
-        # TODO: Выше сделать цикл по аналогии с тем, что ниже
-        DataFrame = Frame(notebook, bd=1, width=1000, height=400, padx=20, pady=20, relief=RIDGE,bg=config.background)
-        DataFrame.pack(side=BOTTOM)
-
-        ButtonFrame = Frame(DataFrame, bd=2, width=1350, height=70, padx=19, pady=10, bg=config.text_background, relief=RIDGE)
-        ButtonFrame.pack(side=BOTTOM)
-
-        DataFrameLEFT = LabelFrame(DataFrame, bd=1, width=1000, height=600, padx=20, relief=RIDGE, bg=config.text_background, font=(config.font, 26, 'bold'), text="Table Info\n")
-        DataFrameLEFT.pack(side=LEFT)
-        DataFrameRIGHT = LabelFrame(DataFrame, bd=1, width=450, height=300, padx=31, pady=3, relief=RIDGE,bg=config.text_background,font=(config.font, 20, 'bold'),text="Table Data\n")
-        DataFrameRIGHT.pack(side=RIGHT)
-
-        vcmd = (self.window.register(numberFieldValid))
-        vcmd_phone = (self.window.register(phoneNumberValid))
-
-        self.labelCustomerID = Label(DataFrameLEFT, font=(config.font, 20, 'bold'), text="Customers's ID:",padx=2,pady=2,bg=config.text_background)
-        self.labelCustomerID.grid(row=0,column=0,sticky=W)
-
-        self.textCustomerID = Entry(DataFrameLEFT, font=(config.font, 20, 'bold'), textvariable=self.CustomerID, width=39, validate="all", validatecommand=(vcmd, "%P"))
-        self.textCustomerID.grid(row=0, column=1)
-
-        self.labelCustomerFullName = Label(DataFrameLEFT, font=(config.font, 20, 'bold'), text="Full Name:", padx=2, pady=2,bg=config.text_background)
-        self.labelCustomerFullName.grid(row=1, column=0, sticky=W)
-        self.textCustomerFullName = Entry(DataFrameLEFT, font=(config.font, 20, 'bold'), textvariable=self.CustomerFullName, width=39)
-        self.textCustomerFullName.grid(row=1, column=1)
-
-        self.labelCustomerPhoneNumber = Label(DataFrameLEFT, font=(config.font, 20, 'bold'), text="Phone Number", padx=2, pady=2,bg=config.text_background)
-        self.labelCustomerPhoneNumber.grid(row=2, column=0, sticky=W)
-        self.textCustomerPhoneNumber = Entry(DataFrameLEFT, font=(config.font, 20, 'bold'), textvariable=self.CustomerPhoneNumber, width=39, validate="all", validatecommand=(vcmd_phone, "%P"))
-        self.textCustomerPhoneNumber.grid(row=2, column=1)
-
-        scrollbar= Scrollbar(DataFrameRIGHT)
-        scrollbar.grid(row=0,column=1,sticky='ns')
-
-        self.CustomerList = Listbox(DataFrameRIGHT, width=41, height=16, font=(config.font, 12, 'bold'),yscrollcommand=scrollbar.set)
-        self.CustomerList.bind('<<ListboxSelect>>', self.__getCustomer)
-        self.CustomerList.grid(row=0, column=0, padx=8)
-        scrollbar.config(command=self.CustomerList.yview)
-
-        buttonCreateTable = Button(ButtonFrame, text="Add New", font=(config.font, 20, 'bold'), height=1, width=10, bd=4, command=self.addDataCustomer)
-        buttonCreateTable.grid(row=0, column = 0)
-
-        # self.btnDisplayData = Button(ButtonFrame, text="Display", font=(config.font, 20, 'bold'), height=1, width=10, bd=4, command=DisplayData)
-        # self.btnDisplayData.grid(row=0, column=1)
-
-        buttonClearData = Button(ButtonFrame, text="Clear", font=(config.font, 20, 'bold'), height=1, width=10, bd=4,command=self.clearData)
-        buttonClearData.grid(row=0, column=1)
-
-        # self.btnSearchData = Button(ButtonFrame, text="Search", font=(config.font, 20, 'bold'), height=1, width=10, bd=4,command=searchDatabase)
-        # self.btnSearchData.grid(row=0, column=4)
-
-        buttonUpdateData = Button(ButtonFrame, text="Update", font=(config.font, 20, 'bold'), height=1, width=10, bd=4,command=self.updateCustomer)
-        buttonUpdateData.grid(row=0, column=2)
-
-        buttonExit = Button(ButtonFrame, text="Exit", font=(config.font, 20, 'bold'), height=1, width=10, bd=4, command=self.exit)
-        buttonExit.grid(row=0, column=3)
-
-        btnDeleteData = Button(ButtonFrame, text="Delete", font=(config.font, 20, 'bold'), height=1, width=10, bd=4,command=self.deleteDatabase)
-        btnDeleteData.grid(row=0, column=9)
-
-        notebook.add(DataFrame, text="Customer")
-
-
-    # TODO: Добавить такие же функции для остальных таблиц
-    def __getSeller(self, event):
-        searchSeller = self.SellerList.curselection()
-        if not searchSeller:
-            return
-        
-        seller = self.SellerList.get(searchSeller[0])
-
-        # Обновление в полях ввода
-        self.textSellerID.delete(0, END)
-        self.textSellerID.insert(END, seller[0])
-        self.textSellerFullName.delete(0, END)
-        self.textSellerFullName.insert(END, seller[1])
-        self.textSellerPhoneNumber.delete(0, END)
-        self.textSellerPhoneNumber.insert(END, seller[2])
-
-    def __getCustomer(self, event):
-        search = self.CustomerList.curselection()
-        if not search:
-            return
-        
-        customer = self.CustomerList.get(search[0])
-
-        # Обновление в полях ввода
-        self.textCustomerID.delete(0, END)
-        self.textCustomerID.insert(END, customer[0])
-        self.textCustomerFullName.delete(0, END)
-        self.textCustomerFullName.insert(END, customer[1])
-        self.textCustomerPhoneNumber.delete(0, END)
-        self.textCustomerPhoneNumber.insert(END, customer[2])
+    #     # Обновление в полях ввода
+    #     for i in range(len(text_variables)):
+    #         text_variables[i].delete(0, END)
+    #         text_variables[i].inster(END, found[i])
