@@ -6,8 +6,4 @@ then
     exit 1
 fi
 
-echo "Анализ бэкенда:"
-pylint /backend
-
-echo "Анализ фронтенда:"
-pylint /frontend
+pylint dealershipDB/
