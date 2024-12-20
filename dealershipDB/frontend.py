@@ -49,7 +49,7 @@ class Frontend:
 
         self.__setup_variables()
 
-        main_frame = Frame(self.window, bg=config.background)
+        main_frame = Frame(self.window, bg=config.BACKGROUND)
         main_frame.grid()
 
         notebook = Notebook(main_frame)
@@ -80,7 +80,7 @@ class Frontend:
             notebook, "Payments",
             ["Payment Method", "Payment Date", "Account", "Payment Size"],
             [(self.payment_method, None), (self.payment_date, None), (self.payment_account_number,
-                                                                    None), (self.payment_receipt_size, vcmd_float)], button_texts,
+                                                                      None), (self.payment_receipt_size, vcmd_float)], button_texts,
             [self.add_payment_data, partial(self.clear_data, [self.payment_method, self.payment_date, self.payment_account_number, self.payment_receipt_size]),
              self.update_payment, self.exit, self.deleteDatabase], self.get_payment)
 
@@ -104,7 +104,7 @@ class Frontend:
     def open_table(self, listbox, table_name):
         data = backend.view_data(table_name)
         if not data:
-            #backend.testFilling()
+            # backend.testFilling()
             return
         listbox.delete(0, END)
         for row in data:
@@ -114,7 +114,7 @@ class Frontend:
     def createNewDatabase(self):
         if self.database_created:
             creating = askyesno(
-                config.title, "Are you sure you want to recreate database?\n The old one will be deleted!")
+                config.TITLE, "Are you sure you want to recreate database?\n The old one will be deleted!")
         else:
             creating = True
         if creating:
@@ -128,7 +128,7 @@ class Frontend:
 
     def deleteDatabase(self):
         deleting = askyesno(
-            config.title, "Are you sure you want to delete database?")
+            config.TITLE, "Are you sure you want to delete database?")
         if deleting > 0:
             backend.drop_dealership_db()
             self.database_created = False
@@ -138,7 +138,7 @@ class Frontend:
         backend.clear_database()
 
     def exit(self):
-        exiting = askyesno(config.title, "Confirm if you want to exit")
+        exiting = askyesno(config.TITLE, "Confirm if you want to exit")
         if exiting:
             self.window.destroy()
 
@@ -269,9 +269,9 @@ class Frontend:
             variables_list[i].set("")
 
     def __setup_window(self):
-        self.window.title(config.title)
-        self.window.geometry(config.resolution)
-        self.window.config(bg=config.background)
+        self.window.title(config.TITLE)
+        self.window.geometry(config.RESOLUTION)
+        self.window.config(bg=config.BACKGROUND)
         # self.window.resizable(0, 0)
 
     def __setup_variables(self):
@@ -312,18 +312,18 @@ class Frontend:
 
     def __setup_frame(self, notebook, notebook_label, label_texts, text_variables, button_texts, commands, list_command):
         data_frame = Frame(notebook, borderwidth=2, padx=20,
-                           pady=20, width=1000, height=400, relief=RIDGE, bg=config.background)
+                           pady=20, width=1000, height=400, relief=RIDGE, bg=config.BACKGROUND)
         data_frame.pack(side=BOTTOM)
 
         button_frame = Frame(data_frame, borderwidth=2, padx=20,
-                             pady=10, width=1350, height=70, relief=RIDGE, bg=config.text_background)
+                             pady=10, width=1350, height=70, relief=RIDGE, bg=config.TEXT_BACKGROUND)
         button_frame.pack(side=BOTTOM)
 
         data_frame_left = LabelFrame(data_frame, bd=1, width=600, height=600, padx=20, relief=RIDGE,
-                                     bg=config.text_background, font=(config.font, 26, 'bold'), text="Table Info\n")
+                                     bg=config.TEXT_BACKGROUND, font=(config.FONT, 26, 'bold'), text="Table Info\n")
         data_frame_left.pack(side=LEFT)
         data_frame_right = LabelFrame(data_frame, bd=1, width=450, height=450, padx=31, pady=3, relief=RIDGE,
-                                      bg=config.text_background, font=(config.font, 20, 'bold'), text="Table Data\n")
+                                      bg=config.TEXT_BACKGROUND, font=(config.FONT, 20, 'bold'), text="Table Data\n")
         data_frame_right.pack(side=RIGHT)
 
         labels = []
@@ -331,24 +331,24 @@ class Frontend:
 
         for i in range(len(label_texts)):
             labels.append(Label(data_frame_left, font=(
-                config.font, 20, 'bold'), text=label_texts[i], padx=2, pady=2, bg=config.text_background))
+                config.FONT, 20, 'bold'), text=label_texts[i], padx=2, pady=2, bg=config.TEXT_BACKGROUND))
             labels[i].grid(row=i, column=0, sticky=W)
 
             variable, validator = text_variables[i]
 
             if validator is not None:
                 entries.append(Entry(data_frame_left, font=(
-                    config.font, 20, 'bold'), textvariable=variable, width=39, validate="all", validatecommand=(validator, "%P")))
+                    config.FONT, 20, 'bold'), textvariable=variable, width=39, validate="all", validatecommand=(validator, "%P")))
             else:
                 entries.append(Entry(data_frame_left, font=(
-                    config.font, 20, 'bold'), textvariable=variable, width=39))
+                    config.FONT, 20, 'bold'), textvariable=variable, width=39))
             entries[i].grid(row=i, column=1)
 
         scrollbar = Scrollbar(data_frame_right)
         scrollbar.grid(row=0, column=1, sticky='ns')
 
         list_box = Listbox(data_frame_right, width=45, height=16, font=(
-            config.font, 12, 'bold'), yscrollcommand=scrollbar.set)
+            config.FONT, 12, 'bold'), yscrollcommand=scrollbar.set)
         list_box.bind('<<ListboxSelect>>', list_command)
         list_box.grid(row=0, column=0, padx=8)
 
@@ -358,7 +358,7 @@ class Frontend:
 
         for i in range(len(button_texts)):
             buttons.append(Button(button_frame, text=button_texts[i], font=(
-                config.font, 20, 'bold'), height=1, width=10, bd=4, command=commands[i]))
+                config.FONT, 20, 'bold'), height=1, width=10, bd=4, command=commands[i]))
             buttons[i].grid(row=0, column=i)
 
         notebook.add(data_frame, text=notebook_label)

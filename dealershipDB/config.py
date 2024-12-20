@@ -1,11 +1,11 @@
-title = "Car Dealership Database"
+TITLE = "Car Dealership Database"
 
-resolution = "1250x545"
+RESOLUTION = "1250x545"
 
-background = "cadet blue"
-text_background = "Ghost white"
+BACKGROUND = "cadet blue"
+TEXT_BACKGROUND = "Ghost white"
 
-font = "times new roman"
+FONT = "times new roman"
 
 tables = {
     'customer',
@@ -17,4 +17,4 @@ tables = {
     'automobile',
     'model',
     'price',
-    }
+}
