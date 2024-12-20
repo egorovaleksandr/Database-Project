@@ -104,7 +104,7 @@ class Frontend:
     def open_table(self, listbox, table_name):
         data = backend.view_data(table_name)
         if not data:
-            # backend.testFilling()
+            backend.test_filling()
             return
         listbox.delete(0, END)
         for row in data:
