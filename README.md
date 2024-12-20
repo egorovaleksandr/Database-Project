@@ -13,8 +13,9 @@
 6.	Модель
 
 База данных в 3НФ, т.к. нет необходимости в транзитивных зависимостях, также 2НФ очевидна.
-![alt text](https://github.com/egorovaleksandr/Database-Project/blob/main/old_database_files/docs/logical-model.pdf)
-
+ <br />
+![logical_model](https://github.com/egorovaleksandr/Database-Project/blob/main/old_database_files/docs/logical-model-1.png)
+ <br />
 ## Инструкция по установке
 1. Создание виртуального окружения (рекомендуется)
 ```
