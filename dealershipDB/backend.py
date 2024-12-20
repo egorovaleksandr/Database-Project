@@ -85,11 +85,14 @@ def test_filling():
     except sqlite3.Error as error:
         print(f"Ошибка при тестовом заполнении базы данных: {error}")
 
-
 def add_data_customer(full_name, phone_number):
     """
     Adds data to the table customer
     """
+    if len(full_name) == 0 or len(phone_number) == 0:
+        print("Ввод даных с пустым полем!")
+        return False
+
     if check_table_not_exists("customer"):
         create_dealership_db()
 
@@ -101,14 +104,19 @@ def add_data_customer(full_name, phone_number):
                 (full_name, phone_number)
                 )
             connection.commit()
+            return True
         except sqlite3.Error as error:
             print(f"Ошибка при добавлении данных: {error}")
-
+            return False
 
 def add_data_seller(full_name, phone_number):
     """
     Adds data to the table seller
     """
+    if len(full_name) == 0 or len(phone_number) == 0:
+        print("Ввод даных с пустым полем!")
+        return False
+
     if check_table_not_exists("seller"):
         create_dealership_db()
 
@@ -120,38 +128,59 @@ def add_data_seller(full_name, phone_number):
                 (full_name, phone_number)
                 )
             connection.commit()
+            return True
         except sqlite3.Error as error:
             print(f"Ошибка при добавлении данных: {error}")
+            return False
 
 def add_data_maker(country, company):
     """
     Adds data to the table maker
     """
+    if len(country) == 0 or len(company) == 0:
+        print("Ввод даных с пустым полем!")
+        return False
+
     if check_table_not_exists("maker"):
         create_dealership_db()
 
     with sqlite3.connect(datapath) as connection:
         cursor = connection.cursor()
-        cursor.execute(
-            "INSERT INTO maker (country, company) VALUES (?, ?)",
-            (country, company)
-            )
-        connection.commit()
+        try:
+            cursor.execute(
+                "INSERT INTO maker (country, company) VALUES (?, ?)",
+                (country, company)
+                )
+            connection.commit()
+            return True
+        except sqlite3.Error as error:
+            print(f"Ошибка при добавлении данных: {error}")
+            return False
 
 def add_data_model(model_name, color, number_of_seats, engine):
     """
     Adds data to the table model
     """
+    if len(model_name) == 0 or len(color) == 0 or len(engine) == 0:
+        print("Ввод даных с пустым полем!")
+        return False
+
     if check_table_not_exists("model"):
         create_dealership_db()
 
     with sqlite3.connect(datapath) as connection:
         cursor = connection.cursor()
-        cursor.execute(
-            "INSERT INTO model (model_name, color, number_of_seats, engine) VALUES (?, ?, ?, ?)",
-            (model_name, color, number_of_seats, engine)
-            )
-        connection.commit()
+        try:
+            cursor.execute(
+                '''INSERT INTO model
+                (model_name, color, number_of_seats, engine) VALUES (?, ?, ?, ?)''',
+                (model_name, color, number_of_seats, engine)
+                )
+            connection.commit()
+            return True
+        except sqlite3.Error as error:
+            print(f"Ошибка при добавлении данных: {error}")
+            return False
 
 def add_data_price(price, date_from, date_to):
     """
@@ -162,58 +191,90 @@ def add_data_price(price, date_from, date_to):
 
     with sqlite3.connect(datapath) as connection:
         cursor = connection.cursor()
-        cursor.execute(
-            "INSERT INTO price (price, date_from, date_to) VALUES (?, ?, ?)",
-            (price, date_from, date_to)
-            )
-        connection.commit()
+        try:
+            cursor.execute(
+                "INSERT INTO price (price, date_from, date_to) VALUES (?, ?, ?)",
+                (price, date_from, date_to)
+                )
+            connection.commit()
+            return True
+        except sqlite3.Error as error:
+            print(f"Ошибка при добавлении данных: {error}")
+            return False
 
 def add_data_automobile(car_brand, maker_id, model_id):
     """
     Adds data to the table automobile
     """
+    if len(car_brand) == 0:
+        print("Ввод данных с пустым полем!")
+        return False
+
     if check_table_not_exists("automobile"):
         create_dealership_db()
 
     with sqlite3.connect(datapath) as connection:
         cursor = connection.cursor()
-        cursor.execute(
-            "INSERT INTO automobile (car_brand, maker_id, model_id) VALUES (?, ?, ?)",
-            (car_brand, maker_id, model_id)
-            )
-        connection.commit()
+        try:
+            cursor.execute(
+                "INSERT INTO automobile (car_brand, maker_id, model_id) VALUES (?, ?, ?)",
+                (car_brand, maker_id, model_id)
+                )
+            connection.commit()
+            return True
+        except sqlite3.Error as error:
+            print(f"Ошибка при добавлении данных: {error}")
+            return False
 
 def add_data_payment(pay_method, pay_date, account_number, receipt_size):
     """
     Adds data to the table payment
     """
+    if len(pay_method) == 0 or len(account_number) == 0 or len(pay_date) == 0:
+        print("Ввод данных с пустым полем!")
+        return False
+
     if check_table_not_exists("payment"):
         create_dealership_db()
 
     with sqlite3.connect(datapath) as connection:
         cursor = connection.cursor()
-        cursor.execute(
-            '''INSERT INTO payment
-            (pay_method, pay_date, account_number, receipt_size) VALUES (?, ?, ?, ?)''',
-            (pay_method, pay_date, account_number, receipt_size)
-            )
-        connection.commit()
+        try:
+            cursor.execute(
+                '''INSERT INTO payment
+                (pay_method, pay_date, account_number, receipt_size) VALUES (?, ?, ?, ?)''',
+                (pay_method, pay_date, account_number, receipt_size)
+                )
+            connection.commit()
+            return True
+        except sqlite3.Error as error:
+            print(f"Ошибка при добавлении данных: {error}")
+            return False
 
 def add_data_service_info(seller_id, automobile_id, service_date, pay_id):
     """
     Adds data to the table service_info
     """
+    if len(service_date) == 0:
+        print("Ввод данных с пустым полем!")
+        return False
+
     if check_table_not_exists("service_info"):
         create_dealership_db()
 
     with sqlite3.connect(datapath) as connection:
         cursor = connection.cursor()
-        cursor.execute(
-            '''INSERT INTO service_info
-            (seller_id, automobile_id, service_date, pay_id) VALUES (?, ?, ?, ?)''',
-            (seller_id, automobile_id, service_date, pay_id)
-            )
-        connection.commit()
+        try:
+            cursor.execute(
+                '''INSERT INTO service_info
+                (seller_id, automobile_id, service_date, pay_id) VALUES (?, ?, ?, ?)''',
+                (seller_id, automobile_id, service_date, pay_id)
+                )
+            connection.commit()
+            return True
+        except sqlite3.Error as error:
+            print(f"Ошибка при добавлении данных: {error}")
+            return False
 
 def add_data_service(customer_id, service_id, automobile_id):
     """
@@ -224,11 +285,16 @@ def add_data_service(customer_id, service_id, automobile_id):
 
     with sqlite3.connect(datapath) as connection:
         cursor = connection.cursor()
-        cursor.execute(
-            "INSERT INTO service (customer_id, service_id, automobile_id) VALUES (?, ?, ?)",
-            (customer_id, service_id, automobile_id)
-            )
-        connection.commit()
+        try:
+            cursor.execute(
+                "INSERT INTO service (customer_id, service_id, automobile_id) VALUES (?, ?, ?)",
+                (customer_id, service_id, automobile_id)
+                )
+            connection.commit()
+            return True
+        except sqlite3.Error as error:
+            print(f"Ошибка при добавлении данных: {error}")
+            return False
 
 #methods for DML (selects)
 def view_data(table_name):
