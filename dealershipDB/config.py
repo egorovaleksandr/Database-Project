@@ -1,6 +1,6 @@
 TITLE = "Car Dealership Database"
 
-RESOLUTION = "1250x545"
+RESOLUTION = "1600x600"
 
 BACKGROUND = "cadet blue"
 TEXT_BACKGROUND = "Ghost white"

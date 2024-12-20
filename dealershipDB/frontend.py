@@ -50,10 +50,8 @@ class Frontend:
         self.__setup_variables()
 
         main_frame = Frame(self.window, bg=config.BACKGROUND)
-        main_frame.grid()
 
         notebook = Notebook(main_frame)
-        notebook.pack(expand=True, fill=BOTH)
 
         vcmd_int = (self.window.register(int_number_field_valid))
         vcmd_float = (self.window.register(int_number_field_valid))
@@ -67,30 +65,44 @@ class Frontend:
             ["Full Name", "Phone Number"],
             [(self.seller_full_name, None),
              (self.seller_phone_number, vcmd_phone)], button_texts,
-            [self.add_seller_data, partial(self.clear_data, [self.seller_full_name, self.seller_phone_number]), self.update_seller, self.exit, self.deleteDatabase], self.get_seller)
+            [self.add_seller_data, 
+             partial(self.clear_data, [self.seller_full_name, self.seller_phone_number]), 
+             self.update_seller, self.exit, self.deleteDatabase], 
+            self.get_seller)
 
         self.customer_texts, self.customer_listbox = self.__setup_frame(
             notebook, "Customers",
             ["Full Name", "Phone Number"],
             [(self.customer_full_name, None),
              (self.customer_phone_number, vcmd_phone)], button_texts,
-            [self.add_customer_data, partial(self.clear_data, [self.customer_full_name, self.customer_phone_number]), self.update_customer, self.exit, self.deleteDatabase], self.get_customer)
+            [self.add_customer_data, 
+             partial(self.clear_data, [self.customer_full_name, self.customer_phone_number]), 
+             self.update_customer, self.exit, self.deleteDatabase], 
+            self.get_customer)
 
         self.payment_texts, self.payment_listbox = self.__setup_frame(
             notebook, "Payments",
             ["Payment Method", "Payment Date", "Account", "Payment Size"],
-            [(self.payment_method, None), (self.payment_date, None), (self.payment_account_number,
-                                                                      None), (self.payment_receipt_size, vcmd_float)], button_texts,
-            [self.add_payment_data, partial(self.clear_data, [self.payment_method, self.payment_date, self.payment_account_number, self.payment_receipt_size]),
-             self.update_payment, self.exit, self.deleteDatabase], self.get_payment)
+            [(self.payment_method, None), (self.payment_date, None),
+             (self.payment_account_number, None), (self.payment_receipt_size, vcmd_float)],
+            button_texts,
+            [self.add_payment_data, 
+             partial(self.clear_data, 
+                     [self.payment_method, self.payment_date, 
+                      self.payment_account_number, self.payment_receipt_size]),
+             self.update_payment, self.exit, self.deleteDatabase], 
+            self.get_payment)
 
         self.automobile_texts, self.automobile_listbox = self.__setup_frame(
             notebook, "Automobiles",
             ["Model Name", "Color", "Number of seats", "Engine"],
             [(self.model_name, None), (self.model_colour, None),
              (self.model_number_of_seats, vcmd_int), (self.model_engine, None)], button_texts,
-            [self.add_automobile_data, partial(self.clear_data, [self.model_name, self.model_colour, self.model_number_of_seats, self.model_engine]),
-             self.update_automobile, self.exit, self.deleteDatabase], self.get_automobile)
+            [self.add_automobile_data, 
+             partial(self.clear_data, [self.model_name, self.model_colour, 
+                                       self.model_number_of_seats, self.model_engine]),
+             self.update_automobile, self.exit, self.deleteDatabase], 
+            self.get_automobile)
 
         tables = [("seller", self.seller_listbox),
                   ("customer", self.customer_listbox),
@@ -100,6 +112,12 @@ class Frontend:
         for table in tables:
             table_name, listbox = table
             self.open_table(listbox, table_name)
+
+        main_frame.pack()
+
+        notebook.pack()
+
+        self.window.update()
 
     def open_table(self, listbox, table_name):
         data = backend.view_data(table_name)
@@ -118,7 +136,6 @@ class Frontend:
         else:
             creating = True
         if creating:
-            # backend.dropDealershipDB()
             backend.create_dealership_db()
             if self.database_created:
                 showinfo("Action", "Database has been created.")
@@ -146,15 +163,13 @@ class Frontend:
         self.database_created = True
         backend.add_data_seller(self.seller_full_name.get(),
                                 self.seller_phone_number.get())
-        self.seller_listbox.insert(
-            END, (self.seller_full_name.get(), self.seller_phone_number.get()))
+        self.update_seller()
 
     def add_customer_data(self):
         self.database_created = True
         backend.add_data_customer(
             self.customer_full_name.get(), self.customer_phone_number.get())
-        self.customer_listbox.insert(
-            END, (self.customer_full_name.get(), self.customer_phone_number.get()))
+        self.update_customer()
 
     def add_payment_data(self):
         self.database_created = True
@@ -163,12 +178,7 @@ class Frontend:
             self.payment_date.get(),
             self.payment_account_number.get(),
             self.payment_receipt_size.get())
-        self.payment_listbox.insert(
-            END,
-            (self.payment_method.get(),
-             self.payment_date.get(),
-             self.payment_account_number.get(),
-             self.payment_receipt_size.get()))
+        self.update_payment()
 
     def add_automobile_data(self):
         self.database_created = True
@@ -177,12 +187,7 @@ class Frontend:
             self.model_colour.get(),
             self.model_number_of_seats.get(),
             self.model_engine.get())
-        self.automobile_listbox.insert(
-            END,
-            (self.model_name.get(),
-             self.model_colour.get(),
-             self.model_number_of_seats.get(),
-             self.model_engine.get()))
+        self.update_automobile()
 
     def update_seller(self):
         self.seller_listbox.delete(0, END)
@@ -272,7 +277,8 @@ class Frontend:
         self.window.title(config.TITLE)
         self.window.geometry(config.RESOLUTION)
         self.window.config(bg=config.BACKGROUND)
-        # self.window.resizable(0, 0)
+        self.window.protocol("WM_DELETE_WINDOW",self.exit)
+        self.window.resizable(0, 0)
 
     def __setup_variables(self):
         # Seller
@@ -311,48 +317,59 @@ class Frontend:
         self.si_service_date = StringVar()
 
     def __setup_frame(self, notebook, notebook_label, label_texts, text_variables, button_texts, commands, list_command):
-        data_frame = Frame(notebook, borderwidth=2, padx=20,
-                           pady=20, width=1000, height=400, relief=RIDGE, bg=config.BACKGROUND)
-        data_frame.pack(side=BOTTOM)
+        page_frame = Frame(notebook, borderwidth=2, padx=20,
+                           pady=20, relief=RIDGE, bg=config.BACKGROUND)
+        data_frame = Frame(page_frame, borderwidth=2, padx=20,
+                           pady=20, bg=config.BACKGROUND)
 
-        button_frame = Frame(data_frame, borderwidth=2, padx=20,
-                             pady=10, width=1350, height=70, relief=RIDGE, bg=config.TEXT_BACKGROUND)
-        button_frame.pack(side=BOTTOM)
+        button_frame = Frame(page_frame, borderwidth=2, padx=20,
+                             pady=10, relief=RIDGE, bg=config.TEXT_BACKGROUND)
 
-        data_frame_left = LabelFrame(data_frame, bd=1, width=600, height=600, padx=20, relief=RIDGE,
+        data_frame_left = LabelFrame(data_frame, bd=1, padx=20, relief=RIDGE,
                                      bg=config.TEXT_BACKGROUND, font=(config.FONT, 26, 'bold'), text="Table Info\n")
-        data_frame_left.pack(side=LEFT)
-        data_frame_right = LabelFrame(data_frame, bd=1, width=450, height=450, padx=31, pady=3, relief=RIDGE,
+
+        data_frame_right = LabelFrame(data_frame, bd=1, relief=RIDGE,
                                       bg=config.TEXT_BACKGROUND, font=(config.FONT, 20, 'bold'), text="Table Data\n")
-        data_frame_right.pack(side=RIGHT)
 
         labels = []
         entries = []
 
         for i in range(len(label_texts)):
             labels.append(Label(data_frame_left, font=(
-                config.FONT, 20, 'bold'), text=label_texts[i], padx=2, pady=2, bg=config.TEXT_BACKGROUND))
+                config.FONT, 20, 'bold'), text=label_texts[i], 
+                padx=2, pady=2, bg=config.TEXT_BACKGROUND))
             labels[i].grid(row=i, column=0, sticky=W)
 
             variable, validator = text_variables[i]
 
             if validator is not None:
                 entries.append(Entry(data_frame_left, font=(
-                    config.FONT, 20, 'bold'), textvariable=variable, width=39, validate="all", validatecommand=(validator, "%P")))
+                    config.FONT, 20, 'bold'), textvariable=variable, 
+                    width=39, validate="all", validatecommand=(validator, "%P")))
             else:
                 entries.append(Entry(data_frame_left, font=(
                     config.FONT, 20, 'bold'), textvariable=variable, width=39))
             entries[i].grid(row=i, column=1)
 
-        scrollbar = Scrollbar(data_frame_right)
-        scrollbar.grid(row=0, column=1, sticky='ns')
-
-        list_box = Listbox(data_frame_right, width=45, height=16, font=(
-            config.FONT, 12, 'bold'), yscrollcommand=scrollbar.set)
+        list_box = Listbox(data_frame_right, width=100, height=16, font=(
+            config.FONT, 12, 'bold'))
         list_box.bind('<<ListboxSelect>>', list_command)
-        list_box.grid(row=0, column=0, padx=8)
 
-        scrollbar.config(command=list_box.yview)
+        xscrollbar = Scrollbar(data_frame_right, orient=HORIZONTAL)
+        xscrollbar.config(command=list_box.xview)
+
+        yscrollbar = Scrollbar(data_frame_right, orient=VERTICAL)
+        yscrollbar.pack(fill=Y, side=RIGHT)
+        yscrollbar.config(command=list_box.yview)
+
+        list_box["xscrollcommand"] = xscrollbar.set
+        list_box["yscrollcommand"] = yscrollbar.set
+
+        xscrollbar.pack(fill=X, side=BOTTOM)
+
+        yscrollbar.pack(fill=Y, side=RIGHT)
+
+        list_box.pack()
 
         buttons = []
 
@@ -361,7 +378,17 @@ class Frontend:
                 config.FONT, 20, 'bold'), height=1, width=10, bd=4, command=commands[i]))
             buttons[i].grid(row=0, column=i)
 
-        notebook.add(data_frame, text=notebook_label)
+        data_frame_right.pack(side=RIGHT)
+
+        data_frame_left.pack(side=LEFT)
+
+        button_frame.pack(side=BOTTOM)
+
+        data_frame.pack()
+
+        page_frame.pack()
+
+        notebook.add(page_frame, text=notebook_label)
 
         return entries, list_box
 
