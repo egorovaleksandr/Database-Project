@@ -34,10 +34,10 @@ def phone_number_valid(value):
         return True
     return re.fullmatch("^\+\d{0,11}", value) is not None
 
-# def date_valid(value):
-#     if value == "":
-#         return True
-#     return re.fullmatch("[0-9]{4}-[0-9]{2}-[0-9]{2}", value) is not None
+def date_valid(value):
+    if value == "":
+        return True
+    return re.fullmatch("\d{,4}-?\d{,2}-?\d{,2}", value) is not None
 
 
 class Frontend:
@@ -56,7 +56,7 @@ class Frontend:
         vcmd_int = (self.window.register(int_number_field_valid))
         vcmd_float = (self.window.register(int_number_field_valid))
         vcmd_phone = (self.window.register(phone_number_valid))
-        # vcmd_date = (self.window.register(date_valid))
+        vcmd_date = (self.window.register(date_valid))
 
         button_texts = ["Add New", "Clear", "Update", "Exit", "Delete"]
 
@@ -64,7 +64,8 @@ class Frontend:
             notebook, "Sellers",
             ["Full Name", "Phone Number"],
             [(self.seller_full_name, None),
-             (self.seller_phone_number, vcmd_phone)], button_texts,
+             (self.seller_phone_number, vcmd_phone)],
+            button_texts,
             [self.add_seller_data, 
              partial(self.clear_data, [self.seller_full_name, self.seller_phone_number]), 
              self.update_seller, self.exit, self.deleteDatabase], 
@@ -74,7 +75,8 @@ class Frontend:
             notebook, "Customers",
             ["Full Name", "Phone Number"],
             [(self.customer_full_name, None),
-             (self.customer_phone_number, vcmd_phone)], button_texts,
+             (self.customer_phone_number, vcmd_phone)],
+            button_texts,
             [self.add_customer_data, 
              partial(self.clear_data, [self.customer_full_name, self.customer_phone_number]), 
              self.update_customer, self.exit, self.deleteDatabase], 
@@ -83,7 +85,7 @@ class Frontend:
         self.payment_texts, self.payment_listbox = self.__setup_frame(
             notebook, "Payments",
             ["Payment Method", "Payment Date", "Account", "Payment Size"],
-            [(self.payment_method, None), (self.payment_date, None),
+            [(self.payment_method, None), (self.payment_date, vcmd_date),
              (self.payment_account_number, None), (self.payment_receipt_size, vcmd_float)],
             button_texts,
             [self.add_payment_data, 
@@ -97,7 +99,8 @@ class Frontend:
             notebook, "Automobiles",
             ["Model Name", "Color", "Number of seats", "Engine"],
             [(self.model_name, None), (self.model_colour, None),
-             (self.model_number_of_seats, vcmd_int), (self.model_engine, None)], button_texts,
+             (self.model_number_of_seats, vcmd_int), (self.model_engine, None)],
+            button_texts,
             [self.add_automobile_data, 
              partial(self.clear_data, [self.model_name, self.model_colour, 
                                        self.model_number_of_seats, self.model_engine]),
@@ -161,33 +164,35 @@ class Frontend:
 
     def add_seller_data(self):
         self.database_created = True
-        backend.add_data_seller(self.seller_full_name.get(),
-                                self.seller_phone_number.get())
-        self.update_seller()
+        if backend.add_data_seller(
+                self.seller_full_name.get(),
+                self.seller_phone_number.get()):
+            self.update_seller()
 
     def add_customer_data(self):
         self.database_created = True
-        backend.add_data_customer(
-            self.customer_full_name.get(), self.customer_phone_number.get())
-        self.update_customer()
+        if backend.add_data_customer(
+                self.customer_full_name.get(),
+                self.customer_phone_number.get()):
+            self.update_customer()
 
     def add_payment_data(self):
         self.database_created = True
-        backend.add_data_payment(
-            self.payment_method.get(),
-            self.payment_date.get(),
-            self.payment_account_number.get(),
-            self.payment_receipt_size.get())
-        self.update_payment()
+        if backend.add_data_payment(
+                self.payment_method.get(),
+                self.payment_date.get(),
+                self.payment_account_number.get(),
+                self.payment_receipt_size.get()):
+            self.update_payment()
 
     def add_automobile_data(self):
         self.database_created = True
-        backend.add_data_model(
-            self.model_name.get(),
-            self.model_colour.get(),
-            self.model_number_of_seats.get(),
-            self.model_engine.get())
-        self.update_automobile()
+        if backend.add_data_model(
+                self.model_name.get(),
+                self.model_colour.get(),
+                self.model_number_of_seats.get(),
+                self.model_engine.get()):
+            self.update_automobile()
 
     def update_seller(self):
         self.seller_listbox.delete(0, END)
