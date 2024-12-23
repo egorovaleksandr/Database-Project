@@ -356,7 +356,7 @@ class Frontend:
                     config.FONT, 20, 'bold'), textvariable=variable, width=39))
             entries[i].grid(row=i, column=1)
 
-        list_box = Listbox(data_frame_right, width=100, height=16, font=(
+        list_box = Listbox(data_frame_right, width=70, height=16, font=(
             config.FONT, 12, 'bold'))
         list_box.bind('<<ListboxSelect>>', list_command)
 
