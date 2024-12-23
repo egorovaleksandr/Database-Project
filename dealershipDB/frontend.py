@@ -399,6 +399,7 @@ class Frontend:
 
     def __setup_frame(  # pylint: disable=too-many-arguments
                         # pylint: disable=too-many-locals
+                        # pylint: disable=too-many-positional-arguments
             self,
             notebook,
             notebook_label,
