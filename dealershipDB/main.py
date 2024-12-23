@@ -1,3 +1,6 @@
+"""
+launches the program
+"""
 from tkinter import Tk
 
 from frontend import Frontend

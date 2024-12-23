@@ -1,7 +1,10 @@
-# frontend
+"""
+frontend
+"""
 import re
 from functools import partial
-from tkinter import *
+# pylint: disable=unused-wildcard-import
+from tkinter import *  # pylint: disable=wildcard-import
 from tkinter.messagebox import askyesno, showinfo
 from tkinter.ttk import Notebook
 
@@ -10,6 +13,9 @@ import config
 
 
 def int_number_field_valid(value):
+    """
+    checks whether the value can be converted to int
+    """
     if value == "":
         return True
     try:
@@ -20,6 +26,9 @@ def int_number_field_valid(value):
 
 
 def float_number_field_valid(value):
+    """
+    checks whether the value can be converted to float
+    """
     if value == "":
         return True
     try:
@@ -30,17 +39,29 @@ def float_number_field_valid(value):
 
 
 def phone_number_valid(value):
+    """
+    checks if the phone number is valid
+    """
     if value == "":
         return True
-    return re.fullmatch("^\+\d{0,11}", value) is not None
+    return re.fullmatch("^\\+\\d{0,11}", value) is not None
 
 def date_valid(value):
+    """
+    checks if date is valid
+    """
     if value == "":
         return True
-    return re.fullmatch("\d{,4}-?\d{,2}-?\d{,2}", value) is not None
+    return re.fullmatch("\\d{,4}-?\\d{,2}-?\\d{,2}", value) is not None
 
 
 class Frontend:
+    """
+    main frontend class to work with windows
+    """
+
+    # pylint: disable=too-many-instance-attributes
+
     def __init__(self, window):
         self.window = window
         self.__setup_window()
@@ -53,10 +74,10 @@ class Frontend:
 
         notebook = Notebook(main_frame)
 
-        vcmd_int = (self.window.register(int_number_field_valid))
-        vcmd_float = (self.window.register(int_number_field_valid))
-        vcmd_phone = (self.window.register(phone_number_valid))
-        vcmd_date = (self.window.register(date_valid))
+        vcmd_int = self.window.register(int_number_field_valid)
+        vcmd_float = self.window.register(int_number_field_valid)
+        vcmd_phone = self.window.register(phone_number_valid)
+        vcmd_date = self.window.register(date_valid)
 
         button_texts = ["Add New", "Clear", "Update", "Exit", "Delete"]
 
@@ -66,9 +87,9 @@ class Frontend:
             [(self.seller_full_name, None),
              (self.seller_phone_number, vcmd_phone)],
             button_texts,
-            [self.add_seller_data, 
-             partial(self.clear_data, [self.seller_full_name, self.seller_phone_number]), 
-             self.update_seller, self.exit, self.deleteDatabase], 
+            [self.add_seller_data,
+             partial(self.clear_data, [self.seller_full_name, self.seller_phone_number]),
+             self.update_seller, self.exit, self.delete_database],
             self.get_seller)
 
         self.customer_texts, self.customer_listbox = self.__setup_frame(
@@ -77,9 +98,9 @@ class Frontend:
             [(self.customer_full_name, None),
              (self.customer_phone_number, vcmd_phone)],
             button_texts,
-            [self.add_customer_data, 
-             partial(self.clear_data, [self.customer_full_name, self.customer_phone_number]), 
-             self.update_customer, self.exit, self.deleteDatabase], 
+            [self.add_customer_data,
+             partial(self.clear_data, [self.customer_full_name, self.customer_phone_number]),
+             self.update_customer, self.exit, self.delete_database],
             self.get_customer)
 
         self.payment_texts, self.payment_listbox = self.__setup_frame(
@@ -88,11 +109,11 @@ class Frontend:
             [(self.payment_method, None), (self.payment_date, vcmd_date),
              (self.payment_account_number, None), (self.payment_receipt_size, vcmd_float)],
             button_texts,
-            [self.add_payment_data, 
-             partial(self.clear_data, 
-                     [self.payment_method, self.payment_date, 
+            [self.add_payment_data,
+             partial(self.clear_data,
+                     [self.payment_method, self.payment_date,
                       self.payment_account_number, self.payment_receipt_size]),
-             self.update_payment, self.exit, self.deleteDatabase], 
+             self.update_payment, self.exit, self.delete_database],
             self.get_payment)
 
         self.automobile_texts, self.automobile_listbox = self.__setup_frame(
@@ -101,10 +122,10 @@ class Frontend:
             [(self.model_name, None), (self.model_colour, None),
              (self.model_number_of_seats, vcmd_int), (self.model_engine, None)],
             button_texts,
-            [self.add_automobile_data, 
-             partial(self.clear_data, [self.model_name, self.model_colour, 
+            [self.add_automobile_data,
+             partial(self.clear_data, [self.model_name, self.model_colour,
                                        self.model_number_of_seats, self.model_engine]),
-             self.update_automobile, self.exit, self.deleteDatabase], 
+             self.update_automobile, self.exit, self.delete_database],
             self.get_automobile)
 
         tables = [("seller", self.seller_listbox),
@@ -123,6 +144,9 @@ class Frontend:
         self.window.update()
 
     def open_table(self, listbox, table_name):
+        """
+        opens a table
+        """
         data = backend.view_data(table_name)
         if not data:
             backend.test_filling()
@@ -132,10 +156,14 @@ class Frontend:
             listbox.insert(END, row)
         self.database_created = True
 
-    def createNewDatabase(self):
+    def create_new_database(self):
+        """
+        creates new database
+        """
         if self.database_created:
             creating = askyesno(
-                config.TITLE, "Are you sure you want to recreate database?\n The old one will be deleted!")
+                config.TITLE,
+                "Are you sure you want to recreate database?\n The old one will be deleted!")
         else:
             creating = True
         if creating:
@@ -146,7 +174,10 @@ class Frontend:
         else:
             showinfo("Action", "Action canceled")
 
-    def deleteDatabase(self):
+    def delete_database(self):
+        """
+        deletes database
+        """
         deleting = askyesno(
             config.TITLE, "Are you sure you want to delete database?")
         if deleting > 0:
@@ -155,14 +186,23 @@ class Frontend:
             showinfo("Action", "Database has been deleated.")
 
     def clear_database(self):
+        """
+        clears data
+        """
         backend.clear_database()
 
     def exit(self):
+        """
+        exiting the program
+        """
         exiting = askyesno(config.TITLE, "Confirm if you want to exit")
         if exiting:
             self.window.destroy()
 
     def add_seller_data(self):
+        """
+        adds data to table seller
+        """
         self.database_created = True
         if backend.add_data_seller(
                 self.seller_full_name.get(),
@@ -170,6 +210,9 @@ class Frontend:
             self.update_seller()
 
     def add_customer_data(self):
+        """
+        adds data to table customer
+        """
         self.database_created = True
         if backend.add_data_customer(
                 self.customer_full_name.get(),
@@ -177,6 +220,9 @@ class Frontend:
             self.update_customer()
 
     def add_payment_data(self):
+        """
+        adds data to table payment
+        """
         self.database_created = True
         if backend.add_data_payment(
                 self.payment_method.get(),
@@ -186,6 +232,9 @@ class Frontend:
             self.update_payment()
 
     def add_automobile_data(self):
+        """
+        adds data to table automobile
+        """
         self.database_created = True
         if backend.add_data_model(
                 self.model_name.get(),
@@ -195,6 +244,9 @@ class Frontend:
             self.update_automobile()
 
     def update_seller(self):
+        """
+        update seller data
+        """
         self.seller_listbox.delete(0, END)
         if self.database_created:
             data = backend.view_data("seller")
@@ -203,6 +255,9 @@ class Frontend:
                 self.seller_listbox.insert(END, row)
 
     def update_customer(self):
+        """
+        update customer data
+        """
         self.customer_listbox.delete(0, END)
         if self.database_created:
             data = backend.view_data("customer")
@@ -211,6 +266,9 @@ class Frontend:
                 self.customer_listbox.insert(END, row)
 
     def update_payment(self):
+        """
+        update payment data
+        """
         self.payment_listbox.delete(0, END)
         if self.database_created:
             data = backend.view_data("payment")
@@ -219,6 +277,9 @@ class Frontend:
                 self.payment_listbox.insert(END, row)
 
     def update_automobile(self):
+        """
+        update automobile data
+        """
         self.automobile_listbox.delete(0, END)
         if self.database_created:
             data = backend.view_data("model")
@@ -226,7 +287,10 @@ class Frontend:
             for row in data:
                 self.automobile_listbox.insert(END, row)
 
-    def get_seller(self, event):
+    def get_seller(self, event):  # pylint: disable=unused-argument
+        """
+        gets seller data
+        """
         search_seller = self.seller_listbox.curselection()
         if not search_seller:
             return
@@ -234,11 +298,14 @@ class Frontend:
         seller = self.seller_listbox.get(search_seller[0])
 
         # Обновление в полях ввода
-        for i in range(len(self.seller_texts)):
+        for i, _ in enumerate(self.seller_texts):
             self.seller_texts[i].delete(0, END)
             self.seller_texts[i].insert(END, seller[i + 1])  # skip id
 
-    def get_customer(self, event):
+    def get_customer(self, event):  # pylint: disable=unused-argument
+        """
+        gets customer data
+        """
         search = self.customer_listbox.curselection()
         if not search:
             return
@@ -246,11 +313,14 @@ class Frontend:
         customer = self.customer_listbox.get(search[0])
 
         # Обновление в полях ввода
-        for i in range(len(self.customer_texts)):
+        for i, _ in enumerate(self.customer_texts):
             self.customer_texts[i].delete(0, END)
             self.customer_texts[i].insert(END, customer[i + 1])  # skip id
 
-    def get_payment(self, event):
+    def get_payment(self, event):  # pylint: disable=unused-argument
+        """
+        gets payment data
+        """
         search = self.payment_listbox.curselection()
         if not search:
             return
@@ -258,11 +328,14 @@ class Frontend:
         payment = self.payment_listbox.get(search[0])
 
         # Обновление в полях ввода
-        for i in range(len(self.payment_texts)):
+        for i, _ in enumerate(self.payment_texts):
             self.payment_texts[i].delete(0, END)
             self.payment_texts[i].insert(END, payment[i + 1])  # skip id
 
-    def get_automobile(self, event):
+    def get_automobile(self, event):  # pylint: disable=unused-argument
+        """
+        gets automobile data
+        """
         search = self.automobile_listbox.curselection()
         if not search:
             return
@@ -270,13 +343,16 @@ class Frontend:
         automobile = self.automobile_listbox.get(search[0])
 
         # Обновление в полях ввода
-        for i in range(len(self.automobile_texts)):
+        for i, _ in enumerate(self.automobile_texts):
             self.automobile_texts[i].delete(0, END)
             self.automobile_texts[i].insert(END, automobile[i + 1])  # skip id
 
     def clear_data(self, variables_list):
-        for i in range(len(variables_list)):
-            variables_list[i].set("")
+        """
+        clears data
+        """
+        for variable in variables_list:
+            variable.set("")
 
     def __setup_window(self):
         self.window.title(config.TITLE)
@@ -321,7 +397,17 @@ class Frontend:
         # Service_info
         self.si_service_date = StringVar()
 
-    def __setup_frame(self, notebook, notebook_label, label_texts, text_variables, button_texts, commands, list_command):
+    def __setup_frame(  # pylint: disable=too-many-arguments
+                        # pylint: disable=too-many-locals
+            self,
+            notebook,
+            notebook_label,
+            label_texts,
+            text_variables,
+            button_texts,
+            commands,
+            list_command
+            ):
         page_frame = Frame(notebook, borderwidth=2, padx=20,
                            pady=20, relief=RIDGE, bg=config.BACKGROUND)
         data_frame = Frame(page_frame, borderwidth=2, padx=20,
@@ -330,18 +416,31 @@ class Frontend:
         button_frame = Frame(page_frame, borderwidth=2, padx=20,
                              pady=10, relief=RIDGE, bg=config.TEXT_BACKGROUND)
 
-        data_frame_left = LabelFrame(data_frame, bd=1, padx=20, relief=RIDGE,
-                                     bg=config.TEXT_BACKGROUND, font=(config.FONT, 26, 'bold'), text="Table Info\n")
+        data_frame_left = LabelFrame(
+            data_frame,
+            bd=1,
+            padx=20,
+            relief=RIDGE,
+            bg=config.TEXT_BACKGROUND,
+            font=(config.FONT, 26, 'bold'),
+            text="Table Info\n"
+            )
 
-        data_frame_right = LabelFrame(data_frame, bd=1, relief=RIDGE,
-                                      bg=config.TEXT_BACKGROUND, font=(config.FONT, 20, 'bold'), text="Table Data\n")
+        data_frame_right = LabelFrame(
+            data_frame,
+            bd=1,
+            relief=RIDGE,
+            bg=config.TEXT_BACKGROUND,
+            font=(config.FONT, 20, 'bold'),
+            text="Table Data\n"
+            )
 
         labels = []
         entries = []
 
-        for i in range(len(label_texts)):
+        for i, _ in enumerate(label_texts):
             labels.append(Label(data_frame_left, font=(
-                config.FONT, 20, 'bold'), text=label_texts[i], 
+                config.FONT, 20, 'bold'), text=label_texts[i],
                 padx=2, pady=2, bg=config.TEXT_BACKGROUND))
             labels[i].grid(row=i, column=0, sticky=W)
 
@@ -349,7 +448,7 @@ class Frontend:
 
             if validator is not None:
                 entries.append(Entry(data_frame_left, font=(
-                    config.FONT, 20, 'bold'), textvariable=variable, 
+                    config.FONT, 20, 'bold'), textvariable=variable,
                     width=39, validate="all", validatecommand=(validator, "%P")))
             else:
                 entries.append(Entry(data_frame_left, font=(
@@ -378,8 +477,8 @@ class Frontend:
 
         buttons = []
 
-        for i in range(len(button_texts)):
-            buttons.append(Button(button_frame, text=button_texts[i], font=(
+        for i, butt_val in enumerate(button_texts):
+            buttons.append(Button(button_frame, text=butt_val, font=(
                 config.FONT, 20, 'bold'), height=1, width=10, bd=4, command=commands[i]))
             buttons[i].grid(row=0, column=i)
 

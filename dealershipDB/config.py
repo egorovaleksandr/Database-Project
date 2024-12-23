@@ -1,3 +1,6 @@
+"""
+contains important constants
+"""
 TITLE = "Car Dealership Database"
 
 RESOLUTION = "1450x600"
