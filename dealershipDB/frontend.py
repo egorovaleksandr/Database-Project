@@ -70,63 +70,9 @@ class Frontend:
 
         self.__setup_variables()
 
-        main_frame = Frame(self.window, bg=config.BACKGROUND)
+        self.main_frame = Frame(self.window, bg=config.BACKGROUND)
 
-        notebook = Notebook(main_frame)
-
-        vcmd_int = self.window.register(int_number_field_valid)
-        vcmd_float = self.window.register(int_number_field_valid)
-        vcmd_phone = self.window.register(phone_number_valid)
-        vcmd_date = self.window.register(date_valid)
-
-        button_texts = ["Add New", "Clear", "Update", "Exit", "Delete"]
-
-        self.seller_texts, self.seller_listbox = self.__setup_frame(
-            notebook, "Sellers",
-            ["Full Name", "Phone Number"],
-            [(self.seller_full_name, None),
-             (self.seller_phone_number, vcmd_phone)],
-            button_texts,
-            [self.add_seller_data,
-             partial(self.clear_data, [self.seller_full_name, self.seller_phone_number]),
-             self.update_seller, self.exit, self.delete_database],
-            self.get_seller)
-
-        self.customer_texts, self.customer_listbox = self.__setup_frame(
-            notebook, "Customers",
-            ["Full Name", "Phone Number"],
-            [(self.customer_full_name, None),
-             (self.customer_phone_number, vcmd_phone)],
-            button_texts,
-            [self.add_customer_data,
-             partial(self.clear_data, [self.customer_full_name, self.customer_phone_number]),
-             self.update_customer, self.exit, self.delete_database],
-            self.get_customer)
-
-        self.payment_texts, self.payment_listbox = self.__setup_frame(
-            notebook, "Payments",
-            ["Payment Method", "Payment Date", "Account", "Payment Size"],
-            [(self.payment_method, None), (self.payment_date, vcmd_date),
-             (self.payment_account_number, None), (self.payment_receipt_size, vcmd_float)],
-            button_texts,
-            [self.add_payment_data,
-             partial(self.clear_data,
-                     [self.payment_method, self.payment_date,
-                      self.payment_account_number, self.payment_receipt_size]),
-             self.update_payment, self.exit, self.delete_database],
-            self.get_payment)
-
-        self.automobile_texts, self.automobile_listbox = self.__setup_frame(
-            notebook, "Automobiles",
-            ["Model Name", "Color", "Number of seats", "Engine"],
-            [(self.model_name, None), (self.model_colour, None),
-             (self.model_number_of_seats, vcmd_int), (self.model_engine, None)],
-            button_texts,
-            [self.add_automobile_data,
-             partial(self.clear_data, [self.model_name, self.model_colour,
-                                       self.model_number_of_seats, self.model_engine]),
-             self.update_automobile, self.exit, self.delete_database],
-            self.get_automobile)
+        self.__setup_frames()
 
         tables = [("seller", self.seller_listbox),
                   ("customer", self.customer_listbox),
@@ -137,9 +83,7 @@ class Frontend:
             table_name, listbox = table
             self.open_table(listbox, table_name)
 
-        main_frame.pack()
-
-        notebook.pack()
+        self.main_frame.pack()
 
         self.window.update()
 
@@ -190,6 +134,18 @@ class Frontend:
         clears data
         """
         backend.clear_database()
+
+    def change_language(self):
+        self.language_ru = not self.language_ru
+        if (self.language_ru):
+            self.button_texts = ["Добавить", "Очистить", "Обновить", "Выход", "Удалить", "РУС/ENG"]
+        else:
+            self.button_texts = ["Add New", "Clear", "Update", "Exit", "Delete", "РУС/ENG"]
+
+        for button_list in self.buttons_list:
+            for i in range(len(button_list)):
+                button_list[i]["text"] = self.button_texts[i]
+    
 
     def exit(self):
         """
@@ -362,6 +318,9 @@ class Frontend:
         self.window.resizable(0, 0)
 
     def __setup_variables(self):
+        self.button_texts = ["Добавить", "Очистить", "Обновить", "Выход", "Удалить", "РУС/ENG"]
+        self.buttons_list = []
+        self.language_ru = True
         # Seller
         self.seller_full_name = StringVar()
         self.seller_phone_number = StringVar()
@@ -483,6 +442,8 @@ class Frontend:
                 config.FONT, 20, 'bold'), height=1, width=10, bd=4, command=commands[i]))
             buttons[i].grid(row=0, column=i)
 
+        self.buttons_list.append(buttons)
+
         data_frame_right.pack(side=RIGHT)
 
         data_frame_left.pack(side=LEFT)
@@ -496,6 +457,64 @@ class Frontend:
         notebook.add(page_frame, text=notebook_label)
 
         return entries, list_box
+    
+    def __setup_frames(self):
+        notebook = Notebook(self.main_frame)
+
+        vcmd_int = self.window.register(int_number_field_valid)
+        vcmd_float = self.window.register(int_number_field_valid)
+        vcmd_phone = self.window.register(phone_number_valid)
+        vcmd_date = self.window.register(date_valid)
+        
+
+        self.seller_texts, self.seller_listbox = self.__setup_frame(
+            notebook, "Sellers",
+            ["Full Name", "Phone Number"],
+            [(self.seller_full_name, None),
+             (self.seller_phone_number, vcmd_phone)],
+            self.button_texts,
+            [self.add_seller_data,
+             partial(self.clear_data, [self.seller_full_name, self.seller_phone_number]),
+             self.update_seller, self.exit, self.delete_database, self.change_language],
+            self.get_seller)
+
+        self.customer_texts, self.customer_listbox = self.__setup_frame(
+            notebook, "Customers",
+            ["Full Name", "Phone Number"],
+            [(self.customer_full_name, None),
+             (self.customer_phone_number, vcmd_phone)],
+            self.button_texts,
+            [self.add_customer_data,
+             partial(self.clear_data, [self.customer_full_name, self.customer_phone_number]),
+             self.update_customer, self.exit, self.delete_database, self.change_language],
+            self.get_customer)
+
+        self.payment_texts, self.payment_listbox = self.__setup_frame(
+            notebook, "Payments",
+            ["Payment Method", "Payment Date", "Account", "Payment Size"],
+            [(self.payment_method, None), (self.payment_date, vcmd_date),
+             (self.payment_account_number, None), (self.payment_receipt_size, vcmd_float)],
+            self.button_texts,
+            [self.add_payment_data,
+             partial(self.clear_data,
+                     [self.payment_method, self.payment_date,
+                      self.payment_account_number, self.payment_receipt_size]),
+             self.update_payment, self.exit, self.delete_database, self.change_language],
+            self.get_payment)
+
+        self.automobile_texts, self.automobile_listbox = self.__setup_frame(
+            notebook, "Automobiles",
+            ["Model Name", "Color", "Number of seats", "Engine"],
+            [(self.model_name, None), (self.model_colour, None),
+             (self.model_number_of_seats, vcmd_int), (self.model_engine, None)],
+            self.button_texts,
+            [self.add_automobile_data,
+             partial(self.clear_data, [self.model_name, self.model_colour,
+                                       self.model_number_of_seats, self.model_engine]),
+             self.update_automobile, self.exit, self.delete_database, self.change_language],
+            self.get_automobile)
+        
+        notebook.pack()
 
     # def get_from_list(self, list_box, text_variables, event):
     #     search = list_box.curselection()
